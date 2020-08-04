@@ -1,31 +1,47 @@
+import api from "./api"
 class App{
     constructor(){
         this.repositories = []
         
         this.formEL = document.getElementById('repo-form');
         this.listEl = document.getElementById('repo-list');
-
+        this.inputEl = document.querySelector('input[name=repository]')
+        
         this.registerHandlers();
     }
+    
+    registerHandlers(){
+        this.formEL.onsubmit = event =>  this.addRepository(event);
+    }
+    
+    async addRepository(event){
+        event.preventDefault();
+        this.repoInput = this.inputEl.value;
+        this.loader();
 
-        registerHandlers(){
-            this.formEL.onsubmit = event =>  this.addRepository(event);
+        try{
+
+            const response = await api.get(`/repos/${this.repoInput}`)
+              const {name, description,html_url, owner:{avatar_url}} = response.data
+              this.repositories.push({
+                 name, 
+                 description,
+                 avatar_url, 
+                 html_url, 
+              });
+        }
+        catch{
+            console.clear();
+                alert('Repositório inexistente')
         }
 
-        addRepository(event){
-            event.preventDefault();
-            this.repositories.push({
-               name: 'rocktseat.com.br',
-               description: 'Tire a sua ideia do papel e dê vida à sua startup.',
-               avatar_url: 'https://avatars0.githubusercontent.com/u/28929274?v=4',
-               html_url: 'http://github.com/rocketseat/rocketseat.com.br', 
-            });
+            this.inputEl.value = "";
             this.render();
         }
 
         render(){
-            this.listEl.innerHTML = "";
-
+            this.listEl.innerHTML = ""
+            
             this.repositories.forEach(repo => {
             let imgEl = document.createElement('img');
             imgEl.setAttribute('src', repo.avatar_url)
@@ -38,6 +54,7 @@ class App{
             
             let linkEl = document.createElement('a');
             linkEl.setAttribute('target', '_blank')
+            linkEl.setAttribute('href', repo.html_url)
             linkEl.appendChild(document.createTextNode('Acessar'));
 
             let listItemEl = document.createElement('li');
@@ -50,6 +67,12 @@ class App{
             })
             
 
+        }
+
+        loader() {
+            let loaderEl1 = document.createElement('span');
+                loaderEl1.appendChild(document.createTextNode('Carregando...'))
+            this.listEl.appendChild(loaderEl1)
         }
 }
 new App();
